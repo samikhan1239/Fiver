@@ -1,10 +1,13 @@
-
+// File: app/api/messages/conversations/route.js
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { connectDB } from "../../../../lib/mongodb";
 import Message from "../../../../models/Message";
 import User from "../../../../models/User";
 import Gig from "../../../../models/Gig";
+
+// Force dynamic rendering to prevent static generation
+export const dynamic = "force-dynamic";
 
 export async function GET(request) {
   try {
@@ -45,7 +48,7 @@ export async function GET(request) {
       .populate("gigId", "title")
       .lean();
 
-    // Group messages by gigId and other user (buyer or seller)
+    // Group messages by gigId and other user
     const conversations = {};
     for (const msg of messages) {
       const otherUserId = msg.userId.toString() === userId ? msg.recipientId?.toString() : msg.userId.toString();
@@ -72,14 +75,15 @@ export async function GET(request) {
       otherUserId: conv.otherUser?._id || null,
       otherUserName: conv.otherUser?.name || "Broadcast",
       otherUserAvatar: conv.otherUser?.avatar || "/default-avatar.jpg",
-      latestMessage: conv.messages.sort((a, b) => b.timestamp - a.timestamp)[0],
+      latestMessage: conv.messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0],
       unreadCount: conv.unreadCount,
     }));
 
     console.log(`Found ${conversationList.length} conversations for userId: ${userId}`);
-    return NextResponse.json(conversationList.sort((a, b) => b.latestMessage.timestamp - a.latestMessage.timestamp), {
-      status: 200,
-    });
+    return NextResponse.json(
+      conversationList.sort((a, b) => new Date(b.latestMessage.timestamp) - new Date(a.latestMessage.timestamp)),
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Get conversations error:", {
       message: error.message,
