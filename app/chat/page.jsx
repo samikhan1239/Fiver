@@ -58,7 +58,7 @@ export default function Chat() {
     fetchMessages();
 
     // Set up WebSocket
-    const websocket = new WebSocket(`ws://localhost:8080?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`);
+    const websocket = new WebSocket(`wss://server-1-v0qz.onrender.com/"?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`);
     websocket.onopen = () => {
       console.log("WebSocket connected for user:", user.id);
     };
