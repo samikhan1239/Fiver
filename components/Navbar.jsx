@@ -29,7 +29,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    router.push("/auth/login");
+    router.push("/login");
   };
 
   return (
@@ -99,7 +99,7 @@ const Navbar = () => {
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                   <Link
-                    href={user ? `/profile/${user.id}` : "/auth/login"}
+                    href={user ? `/profile/${user.id}` : "/login"}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Profile

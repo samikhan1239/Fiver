@@ -7,6 +7,11 @@ const nextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "/**", // Allow all paths under res.cloudinary.com
       },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/**", // Allow all paths under images.pexels.com
+      },
     ],
   },
 };
