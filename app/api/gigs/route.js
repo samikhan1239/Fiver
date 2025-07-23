@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { connectDB } from "../../../lib/mongodb";
 import Gig from "../../../models/Gig";
+import User from "../../../models/User";
 
 export async function GET() {
   try {
     await connectDB();
+    console.log("Registered models:", Object.keys(mongoose.models)); // Debug model registration
     console.log("Fetching gigs from database...");
-    const gigs = await Gig.find({}).populate("userId", "name email avatar").lean(); // Include avatar if available in User schema
+    const gigs = await Gig.find({})
+      .populate("userId", "name email avatar", { strictPopulate: false }) // Add strictPopulate: false
+      .lean();
     console.log(`Found ${gigs.length} gigs`);
 
     // Transform gigs to match frontend expectations
@@ -17,13 +22,13 @@ export async function GET() {
         : {};
 
       return {
-        id: gig._id.toString(), // Map _id to id
+        id: gig._id.toString(),
         title: gig.title,
         image: gig.images?.[0] || "https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=300",
         seller: gig.userId?.name || "Unknown",
         sellerAvatar: gig.userId?.avatar || "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&fit=crop",
-        rating: gig.rating || 4.9, // Default to match frontend placeholder
-        reviews: gig.reviews || 2847, // Default to match frontend placeholder
+        rating: gig.rating || 4.9,
+        reviews: gig.reviews || 2847,
         packages: {
           basic: {
             price: basicPackage.price || "N/A",
@@ -40,7 +45,10 @@ export async function GET() {
       name: error.name,
       stack: error.stack,
     });
-    return NextResponse.json({ message: "Failed to load gigs", error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to load gigs", error: error.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -60,6 +68,7 @@ export async function POST(request) {
     }
 
     await connectDB();
+    console.log("Registered models:", Object.keys(mongoose.models)); // Debug model registration
     const body = await request.json();
     console.log("Received gig data:", body);
 
@@ -77,7 +86,14 @@ export async function POST(request) {
     } = body;
 
     if (!title || !category || !subcategory || !description || !packages || !userId) {
-      console.error("Gig creation error: Missing required fields", { title, category, subcategory, description, packages, userId });
+      console.error("Gig creation error: Missing required fields", {
+        title,
+        category,
+        subcategory,
+        description,
+        packages,
+        userId,
+      });
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
@@ -88,11 +104,17 @@ export async function POST(request) {
     for (const pkg of packages) {
       if (!pkg.name || !pkg.price || isNaN(pkg.price) || Number(pkg.price) < 5) {
         console.error("Gig creation error: Invalid price in package", { package: pkg });
-        return NextResponse.json({ message: `Price for ${pkg.name} package must be at least ₹5` }, { status: 400 });
+        return NextResponse.json(
+          { message: `Price for ${pkg.name} package must be at least ₹5` },
+          { status: 400 }
+        );
       }
       if (!pkg.features || !Array.isArray(pkg.features) || pkg.features.some((f) => !f)) {
         console.error("Gig creation error: Invalid features in package", { package: pkg });
-        return NextResponse.json({ message: `All features in ${pkg.name} package must be filled` }, { status: 400 });
+        return NextResponse.json(
+          { message: `All features in ${pkg.name} package must be filled` },
+          { status: 400 }
+        );
       }
     }
 
@@ -128,6 +150,9 @@ export async function POST(request) {
       stack: error.stack,
       errors: error.errors,
     });
-    return NextResponse.json({ message: error.message || "Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: error.message || "Server Error" },
+      { status: 500 }
+    );
   }
 }
