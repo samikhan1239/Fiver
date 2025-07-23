@@ -191,7 +191,7 @@ export default function GigPage() {
 
               <div className="flex items-center mb-4">
                 <Image
-                  src={gig.userId?.avatar || "/default-avatar.jpg"}
+                  src={ "/default-avatar.png"}
                   alt={gig.userId?.name || "Seller"}
                   width={40}
                   height={40}
@@ -393,7 +393,7 @@ export default function GigPage() {
               <div className="border-t border-gray-200 pt-6">
                 <div className="flex items-center mb-4">
                   <Image
-                    src={gig.userId?.avatar || "/default-avatar.jpg"}
+                    src={ "/default-avatar.png"}
                     alt={gig.userId?.name || "Seller"}
                     width={48}
                     height={48}

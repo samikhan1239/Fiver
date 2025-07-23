@@ -1,9 +1,8 @@
-
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Menu, X, User, MessageCircle, Bell, ChevronDown } from "lucide-react";
+import { Search, Menu, X, MessageCircle, Bell, ChevronDown } from "lucide-react";
 import jwt from "jsonwebtoken";
 import Image from "next/image";
 
@@ -30,6 +29,14 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     router.push("/login");
+  };
+
+  const handleLogin = () => {
+    router.push("/login");
+  };
+
+  const handleRegister = () => {
+    router.push("/register");
   };
 
   return (
@@ -83,37 +90,59 @@ const Navbar = () => {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
               >
-               <Image
-  src={
-    user?.avatar ||
-    "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&fit=crop"
-  }
-  alt="Profile"
-  width={32} // w-8 = 32px
-  height={32} // h-8 = 32px
-  className="rounded-full"
-/>
+                <Image
+                  src={
+                    user?.avatar ||
+                    "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&fit=crop"
+                  }
+                  alt="Profile"
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
                 <ChevronDown className="h-4 w-4" />
               </button>
 
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                  <Link
-                    href={user ? `/profile/${user.id}` : "/login"}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Profile
-                  </Link>
-                  <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Dashboard
-                  </Link>
-                  <hr className="my-1" />
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Logout
-                  </button>
+                  {user ? (
+                    <>
+                      <Link
+                        href={`/profile/${user.id}`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Dashboard
+                      </Link>
+                      <hr className="my-1" />
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleLogin}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Login
+                      </button>
+                      <button
+                        onClick={handleRegister}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Register
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -159,18 +188,37 @@ const Navbar = () => {
             <Link href="/messages" className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">
               Messages
             </Link>
-            <Link
-              href={user ? `/profile/${user.id}` : "/auth/login"}
-              className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-            >
-              Profile
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-            >
-              Logout
-            </button>
+            {user ? (
+              <>
+                <Link
+                  href={`/profile/${user.id}`}
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleLogin}
+                  className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={handleRegister}
+                  className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  Register
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

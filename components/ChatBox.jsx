@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import defaultAvatar from "@/public/default-avatar.png";
+import defaultAvatar from "../public/default-avatar.png"; // Ensure you have a default avatar image
 
 export default function ChatBox({ messages, sendMessage, userId }) {
   const [input, setInput] = useState("");
@@ -47,8 +47,7 @@ export default function ChatBox({ messages, sendMessage, userId }) {
                 >
                   <Image
                     src={
-                      message.userId?.avatar ||
-                      (typeof message.userId === "object" && message.userId?.avatar) ||
+              
                       defaultAvatar
                     }
                     alt={

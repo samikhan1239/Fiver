@@ -165,7 +165,7 @@ export default function Dashboard() {
             <p className="text-gray-600">Manage your services and track your performance</p>
           </div>
           <Link
-            href="/create-service"
+            href="/gigs/create"
             className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center"
           >
             <Plus className="h-5 w-5 mr-2" />
