@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { connectDB } from "../../../lib/mongodb";
 import Message from "../../../models/Message";
+import User from "../../../models/User";
+import mongoose from "mongoose";
+
+// Explicitly register User model
+mongoose.model("User");
 
 export async function GET(request) {
   try {
@@ -21,12 +26,12 @@ export async function GET(request) {
       $or: [
         { userId: userId, recipientId: sellerId },
         { userId: sellerId, recipientId: userId },
-        { userId: userId, recipientId: null }, // Broadcast messages
+        { userId: userId, recipientId: null },
         { userId: sellerId, recipientId: null },
       ],
     })
       .populate("userId", "name avatar")
-      .sort({ timestamp: 1 }) // Ensure oldest to newest
+      .sort({ timestamp: 1 })
       .lean();
 
     console.log("GET /api/messages response:", messages);
@@ -57,9 +62,12 @@ export async function POST(request) {
 
     await connectDB();
 
-    const { gigId, senderId, recipientId, text, timestamp } = await request.json();
+    const payload = await request.json();
+    console.log("POST /api/messages payload:", payload); // Log payload
+    const { gigId, senderId, recipientId, text, timestamp } = payload;
 
     if (!gigId || !senderId || !text) {
+      console.log("❌ Missing required fields:", { gigId, senderId, text, timestamp });
       return NextResponse.json({ message: "Missing required fields: gigId, senderId, or text" }, { status: 400 });
     }
 

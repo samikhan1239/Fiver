@@ -18,16 +18,26 @@ export default function Chat() {
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!token) {
-      router.push("/auth/login");
+      router.push("/login");
       return;
     }
-    const decoded = jwt.decode(token);
-    if (!decoded) {
+    try {
+      const decoded = jwt.decode(token);
+      if (!decoded || !decoded.id) {
+        setError("Invalid token");
+        setLoading(false);
+        return;
+      }
+      setUser(decoded);
+    } catch (err) {
+      console.error("JWT decode error:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+      });
       setError("Invalid token");
       setLoading(false);
-      return;
     }
-    setUser(decoded);
   }, [router]);
 
   // Fetch initial messages and set up WebSocket
@@ -37,9 +47,13 @@ export default function Chat() {
     // Fetch initial messages
     async function fetchMessages() {
       try {
-        const res = await fetch(`/api/messages?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`);
+        const res = await fetch(`/api/messages?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         if (!res.ok) {
-          throw new Error("Failed to fetch messages");
+          throw new Error(`Failed to fetch messages: ${res.status} ${res.statusText}`);
         }
         const data = await res.json();
         console.log("Fetched initial messages:", data);
@@ -57,40 +71,57 @@ export default function Chat() {
     }
     fetchMessages();
 
-    // Set up WebSocket
-    const websocket = new WebSocket(`wss://server-ha0p.onrender.com/"?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`);
-    websocket.onopen = () => {
-      console.log("WebSocket connected for user:", user.id);
-    };
-    websocket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        console.log("Received WebSocket message:", message);
-        if (message.error) {
-          setError(message.error);
-          return;
-        }
-        // Deduplicate by _id
-        setMessages((prev) => {
-          if (prev.some((m) => m._id === message._id)) {
-            console.log("Duplicate message ignored:", message._id);
-            return prev;
+    // Set up WebSocket with reconnection
+    const connectWebSocket = () => {
+      const websocket = new WebSocket(
+        `wss://server-1-v0qz.onrender.com/?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`
+      );
+
+      websocket.onopen = () => {
+        console.log("WebSocket connected for user:", user.id);
+        setWs(websocket);
+      };
+
+      websocket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          console.log("Received WebSocket message:", message);
+          if (message.error) {
+            setError(message.error);
+            return;
           }
-          return [...prev, message];
-        });
-      } catch (err) {
-        console.error("WebSocket message parsing error:", err);
-        setError("Failed to process incoming message");
-      }
+          setMessages((prev) => {
+            if (message._id && prev.some((m) => m._id === message._id)) {
+              console.log("Duplicate message ignored:", message._id);
+              return prev;
+            }
+            return [...prev, { ...message, userId: message.userId || { _id: message.senderId } }];
+          });
+        } catch (err) {
+          console.error("WebSocket message parsing error:", {
+            message: err.message,
+            name: err.name,
+            stack: err.stack,
+          });
+          setError("Failed to process incoming message");
+        }
+      };
+
+      websocket.onerror = (err) => {
+        console.error("WebSocket error:", err);
+        setError("WebSocket connection failed");
+      };
+
+      websocket.onclose = () => {
+        console.log("WebSocket closed, attempting to reconnect...");
+        setWs(null);
+        setTimeout(connectWebSocket, 3000); // Reconnect after 3s
+      };
+
+      return websocket;
     };
-    websocket.onerror = (err) => {
-      console.error("WebSocket error:", err);
-      setError("WebSocket connection failed");
-    };
-    websocket.onclose = () => {
-      console.log("WebSocket closed");
-    };
-    setWs(websocket);
+
+    const websocket = connectWebSocket();
 
     return () => {
       console.log("Cleaning up WebSocket");
@@ -104,37 +135,85 @@ export default function Chat() {
       console.error("WebSocket not connected:", { ws, user, readyState: ws?.readyState });
       return;
     }
-    const message = {
+
+    // Optimistically add message to UI
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage = {
+      _id: tempId,
       gigId,
+      userId: { _id: user.id, name: user.name, avatar: user.avatar },
       senderId: user.id,
-      recipientId: user.id === sellerId ? null : sellerId,
       text,
       timestamp: Date.now(),
+      read: false,
     };
-    console.log("Sending message:", message);
-    ws.send(JSON.stringify(message));
+    setMessages((prev) => [...prev, optimisticMessage]);
+    console.log("Optimistically added message:", optimisticMessage);
 
-    // Save message to MongoDB (no state update here)
     try {
-      const res = await fetch("/api/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(message),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to save message");
-      }
-      console.log("Message saved to API:", await res.json());
+      // Send message via WebSocket
+      const wsMessage = {
+        gigId: gigId.toString(), // Ensure string for WebSocket
+        senderId: user.id.toString(),
+        recipientId: user.id === sellerId ? null : sellerId.toString(),
+        text,
+        timestamp: Date.now(),
+      };
+      console.log("Preparing to send WebSocket message:", wsMessage);
+      ws.send(JSON.stringify(wsMessage));
+      console.log("Sent WebSocket message:", wsMessage);
+
+      // Save message to MongoDB with slight delay
+      setTimeout(async () => {
+        try {
+          const apiPayload = {
+            gigId,
+            senderId: user.id,
+            recipientId: user.id === sellerId ? null : sellerId,
+            text,
+            timestamp: Date.now(),
+          };
+          console.log("Preparing to send API payload:", apiPayload);
+          const res = await fetch("/api/messages", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(apiPayload),
+          });
+          const responseData = await res.json();
+          if (!res.ok) {
+            throw new Error(`Failed to save message: ${res.status} ${responseData.message || responseData.error}`);
+          }
+          console.log("Message saved to API:", responseData);
+
+          // Replace optimistic message with saved message
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg._id === tempId
+                ? { ...responseData, userId: responseData.userId || { _id: responseData.senderId } }
+                : msg
+            )
+          );
+        } catch (err) {
+          console.error("API save error:", {
+            message: err.message,
+            name: err.name,
+            stack: err.stack,
+          });
+          setError(err.message);
+          setMessages((prev) => prev.filter((msg) => msg._id !== tempId));
+        }
+      }, 100); // Delay to avoid race condition
     } catch (err) {
-      console.error("Save message error:", {
+      console.error("WebSocket send error:", {
         message: err.message,
         name: err.name,
         stack: err.stack,
       });
-      setError("Failed to save message");
+      setError(err.message);
+      setMessages((prev) => prev.filter((msg) => msg._id !== tempId));
     }
   };
 

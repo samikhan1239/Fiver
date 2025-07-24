@@ -9,7 +9,7 @@ const OrderSchema = new mongoose.Schema({
   status: { type: String, enum: ["pending", "in_progress", "completed", "cancelled"], required: true },
   buyer: {
     name: { type: String, required: true },
-    avatar: { type: String, default: "/default-avatar.jpg" },
+    avatar: { type: String, default: "/default-avatar.png" },
   },
   deadline: { type: String },
   razorpayOrderId: { type: String, required: true },

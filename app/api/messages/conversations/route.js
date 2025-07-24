@@ -74,7 +74,7 @@ export async function GET(request) {
       gigTitle: conv.gigTitle,
       otherUserId: conv.otherUser?._id || null,
       otherUserName: conv.otherUser?.name || "Broadcast",
-      otherUserAvatar: conv.otherUser?.avatar || "/default-avatar.jpg",
+      otherUserAvatar: conv.otherUser?.avatar || "/default-avatar.png",
       latestMessage: conv.messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0],
       unreadCount: conv.unreadCount,
     }));

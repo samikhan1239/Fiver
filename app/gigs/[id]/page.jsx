@@ -254,7 +254,7 @@ export default function GigPage() {
                   <div key={review._id} className="border-b border-gray-200 pb-4 last:border-b-0">
                     <div className="flex items-start">
                       <Image
-                        src={review.userId?.avatar || "/default-avatar.jpg"}
+                        src={review.userId?.avatar || "/default-avatar.png"}
                         alt={review.userId?.name || "Reviewer"}
                         width={40}
                         height={40}

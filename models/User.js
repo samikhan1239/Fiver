@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  avatar: { type: String, default: "/default-avatar.jpg" },
+  avatar: { type: String, default: "/default-avatar.png" },
   level: { type: String, default: "New Seller" },
   rating: { type: Number, default: 0 },
   responseTime: { type: String, default: "1 hour" },

@@ -16,7 +16,7 @@ export async function GET() {
         id: gig._id,
         title: gig.title,
         seller: gig.userId?.name || "Unknown",
-        sellerAvatar: gig.userId?.avatar || "/default-avatar.jpg",
+        sellerAvatar: gig.userId?.avatar || "/default-avatar.png",
         rating: gig.rating || 0,
         reviews: gig.reviews || 0,
         price: gig.packages?.[0]?.price || 0,

@@ -297,7 +297,7 @@ export default function Dashboard() {
                     <div key={order._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center">
                         <Image
-  src={order.buyer?.avatar || "/default-avatar.jpg"}
+  src={order.buyer?.avatar || "/default-avatar.png"}
   alt={order.buyer?.name || "Unknown"}
   width={40} // w-10 = 40px
   height={40} // h-10 = 40px
@@ -474,7 +474,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
                        <Image
-  src={order.buyer?.avatar || "/default-avatar.jpg"}
+  src={order.buyer?.avatar || "/default-avatar.png"}
   alt={order.buyer?.name || "Unknown"}
   width={48}
   height={48}

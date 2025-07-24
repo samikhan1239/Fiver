@@ -65,7 +65,7 @@ export async function POST(req) {
       status: "pending",
       buyer: {
         name: user.name || "Unknown",
-        avatar: user.avatar || "/default-avatar.jpg",
+        avatar: user.avatar || "/default-avatar.png",
       },
       deadline: deadline.toISOString(),
       razorpayOrderId,

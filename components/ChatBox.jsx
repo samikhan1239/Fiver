@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import defaultAvatar from "../public/default-avatar.png"; // Ensure you have a default avatar image
+import defaultAvatar from "../public/default-avatar.png";
 
 export default function ChatBox({ messages, sendMessage, userId }) {
   const [input, setInput] = useState("");
@@ -21,7 +21,6 @@ export default function ChatBox({ messages, sendMessage, userId }) {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 max-w-4xl mx-auto">
-      {/* Chat Area */}
       <div className="h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 mb-4 space-y-4 pr-2">
         {messages.length === 0 ? (
           <p className="text-center text-gray-500 mt-10">
@@ -46,10 +45,7 @@ export default function ChatBox({ messages, sendMessage, userId }) {
                   } items-start max-w-[75%] gap-3`}
                 >
                   <Image
-                    src={
-              
-                      defaultAvatar
-                    }
+                    src={message.userId?.avatar || defaultAvatar}
                     alt={
                       message.userId?.name ||
                       (typeof message.userId === "object" && message.userId?.name) ||
@@ -60,7 +56,6 @@ export default function ChatBox({ messages, sendMessage, userId }) {
                     className="w-10 h-10 rounded-full object-cover"
                     unoptimized
                   />
-
                   <div
                     className={`p-4 shadow-md ${
                       isSent
@@ -99,8 +94,6 @@ export default function ChatBox({ messages, sendMessage, userId }) {
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Input Form */}
       <form onSubmit={handleSubmit} className="flex gap-3 items-center">
         <input
           type="text"
