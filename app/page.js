@@ -83,7 +83,7 @@ export default function Home() {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroSlides.length]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black">
@@ -345,7 +345,7 @@ export default function Home() {
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-black mb-6">
               <span className="bg-gradient-to-r from-lime-400 via-green-400 to-emerald-400 bg-clip-text text-transparent">
-                Why We're
+                Why We&apos;re
               </span>
               <br />
               <span className="bg-gradient-to-r from-coral-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
@@ -456,7 +456,7 @@ export default function Home() {
                 FreelanceHub
               </h3>
               <p className="text-gray-300 mb-8 text-lg leading-relaxed">
-                The future of freelancing is here. Connect, create, and conquer with the world's most advanced talent
+                The future of freelancing is here. Connect, create, and conquer with the world&apos;s most advanced talent
                 marketplace.
               </p>
               <div className="flex space-x-6">
