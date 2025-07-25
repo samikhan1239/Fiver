@@ -3,6 +3,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Star, Grid, List } from "lucide-react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
 export default function Gigs() {
   const [viewMode, setViewMode] = useState("grid");
   const [sortBy, setSortBy] = useState("relevance");
@@ -15,18 +19,17 @@ export default function Gigs() {
   const [selectedDeliveryTimes, setSelectedDeliveryTimes] = useState([]);
 
   const categories = [
-    "All Categories",
-    "Graphics & Design",
-    "Digital Marketing",
-    "Writing & Translation",
-    "Video & Animation",
-    "Music & Audio",
-    "Programming & Tech",
-    "Data",
-    "Business",
+    { name: "All Categories", color: "from-teal-400 to-cyan-500" },
+    { name: "Graphics & Design", color: "from-coral-400 to-red-500" },
+    { name: "Digital Marketing", color: "from-teal-400 to-cyan-500" },
+    { name: "Writing & Translation", color: "from-lime-400 to-green-500" },
+    { name: "Video & Animation", color: "from-orange-400 to-red-500" },
+    { name: "Music & Audio", color: "from-purple-400 to-pink-500" },
+    { name: "Programming & Tech", color: "from-blue-400 to-indigo-500" },
+    { name: "Data", color: "from-pink-400 to-purple-500" },
+    { name: "Business", color: "from-emerald-400 to-teal-500" },
   ];
 
-  // Fetch gigs from /api/gigs
   useEffect(() => {
     async function fetchGigs() {
       try {
@@ -36,7 +39,7 @@ export default function Gigs() {
           throw new Error("Failed to fetch gigs");
         }
         const data = await res.json();
-        console.log("API response:", data); // Debug the response
+        console.log("API response:", data);
         setGigs(data);
         setLoading(false);
       } catch (err) {
@@ -47,7 +50,6 @@ export default function Gigs() {
     fetchGigs();
   }, []);
 
-  // Filter and sort gigs
   const filteredGigs = gigs
     .filter((gig) => {
       const matchesSearch =
@@ -70,7 +72,7 @@ export default function Gigs() {
       } else if (sortBy === "newest") {
         return new Date(b.createdAt) - new Date(a.createdAt);
       }
-      return 0; // Default: relevance (no sorting)
+      return 0;
     })
     .filter((gig) => {
       if (priceRange === "all") return true;
@@ -83,192 +85,266 @@ export default function Gigs() {
     });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Gigs</h1>
-          <p className="text-gray-600">Explore thousands of services from talented freelancers</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(20,184,166,0.1),transparent_50%)]"></div>
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from inky-400/20 to-orange-400/20 rounded-full blur-xl animate-bounce" />
+        <div className="absolute bottom-32 right-40 w-40 h-40 bg-gradient-to-r from-teal-400/20 to-cyan-400/20 rounded-full blur-2xl animate-pulse" />
+      </div>
+      <div className="container mx-auto px-4 py-12 relative">
+        <div className="text-center mb-16">
+          <Badge className="bg-gradient-to-r from-teal-400/20 to-cyan-400/20 text-teal-300 border-teal-400/30 mb-6 px-4 py-2">
+            🚀 Explore Gigs
+          </Badge>
+          <h1 className="text-5xl md:text-6xl font-black mb-4">
+            <span className="bg-gradient-to-r from-teal-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              Discover
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-coral-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+              Freelance Talent
+            </span>
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            Find the perfect service for your project from thousands of talented freelancers.
+          </p>
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search for gigs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
+        {error && (
+          <Card className="mb-8 border-0 bg-gradient-to-br from-red-800/50 to-red-900/50 backdrop-blur-sm">
+            <CardContent className="p-4">
+              <p className="text-red-300 text-center font-medium">{error}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="mb-8 border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search for gigs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-900/50 border border-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-3 rounded-lg bg-gray-900/50 border border-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                >
+                  <option value="relevance">Best Match</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="newest">Newest First</option>
+                </select>
+
+                <select
+                  value={priceRange}
+                  onChange={(e) => setPriceRange(e.target.value)}
+                  className="px-4 py-3 rounded-lg bg-gray-900/50 border border-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                >
+                  <option value="all">All Prices</option>
+                  <option value="0-25">₹0 - ₹25</option>
+                  <option value="25-50">₹25 - ₹50</option>
+                  <option value="50-100">₹50 - ₹100</option>
+                  <option value="100+">₹100+</option>
+                </select>
+
+                <div className="flex border border-gray-700/50 rounded-lg bg-gray-900/50">
+                  <Button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-3 ${viewMode === "grid" ? "bg-gradient-to-r from-teal-400 to-cyan-400 text-white" : "text-gray-400 hover:text-teal-300"}`}
+                    variant="ghost"
+                  >
+                    <Grid className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    onClick={() => setViewMode("list")}
+                    className={`p-3 ${viewMode === "list" ? "bg-gradient-to-r from-teal-400 to-cyan-400 text-white" : "text-gray-400 hover:text-teal-300"}`}
+                    variant="ghost"
+                  >
+                    <List className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             </div>
-
-            <div className="flex gap-4">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="relevance">Best Match</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="newest">Newest First</option>
-              </select>
-
-              <select
-                value={priceRange}
-                onChange={(e) => setPriceRange(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="all">All Prices</option>
-                <option value="0-25">₹0 - ₹25</option>
-                <option value="25-50">₹25 - ₹50</option>
-                <option value="50-100">₹50 - ₹100</option>
-                <option value="100+">₹100+</option>
-              </select>
-
-              <div className="flex border border-gray-300 rounded-lg">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 ${viewMode === "grid" ? "bg-green-500 text-white" : "text-gray-600"}`}
-                >
-                  <Grid className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 ${viewMode === "list" ? "bg-green-500 text-white" : "text-gray-600"}`}
-                >
-                  <List className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <div className="flex gap-8">
-          {/* Sidebar */}
           <div className="w-64 hidden lg:block">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="font-semibold mb-4">Categories</h3>
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <label key={category} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedCategories([...selectedCategories, category]);
-                        } else {
-                          setSelectedCategories(selectedCategories.filter((cat) => cat !== category));
-                        }
-                      }}
-                      className="mr-2 rounded"
-                    />
-                    <span className="text-sm text-gray-700">{category}</span>
-                  </label>
-                ))}
-              </div>
+            <Card className="border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-white mb-6 bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                  Categories
+                </h3>
+                <div className="space-y-2">
+                  {categories.map((category, index) => (
+                    <label key={category.name} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(category.name)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCategories([...selectedCategories, category.name]);
+                          } else {
+                            setSelectedCategories(selectedCategories.filter((cat) => cat !== category.name));
+                          }
+                        }}
+                        className="mr-2 rounded bg-gray-900/50 border-gray-700/50 text-teal-400 focus:ring-teal-400"
+                      />
+                      <span className="text-sm text-gray-300">{category.name}</span>
+                    </label>
+                  ))}
+                </div>
 
-              <hr className="my-6" />
+                <hr className="my-6 border-gray-700/50" />
 
-              <h3 className="font-semibold mb-4">Delivery Time</h3>
-              <div className="space-y-2">
-                {["1", "3", "7"].map((days) => (
-                  <label key={days} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedDeliveryTimes.includes(days)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedDeliveryTimes([...selectedDeliveryTimes, days]);
-                        } else {
-                          setSelectedDeliveryTimes(selectedDeliveryTimes.filter((d) => d !== days));
-                        }
-                      }}
-                      className="mr-2 rounded"
-                    />
-                    <span className="text-sm text-gray-700">{days} Day{Number(days) > 1 ? "s" : ""}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+                <h3 className="text-xl font-bold text-white mb-6 bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                  Delivery Time
+                </h3>
+                <div className="space-y-2">
+                  {["1", "3", "7"].map((days) => (
+                    <label key={days} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedDeliveryTimes.includes(days)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedDeliveryTimes([...selectedDeliveryTimes, days]);
+                          } else {
+                            setSelectedDeliveryTimes(selectedDeliveryTimes.filter((d) => d !== days));
+                          }
+                        }}
+                        className="mr-2 rounded bg-gray-900/50 border-gray-700/50 text-teal-400 focus:ring-teal-400"
+                      />
+                      <span className="text-sm text-gray-300">{days} Day{Number(days) > 1 ? "s" : ""}</span>
+                    </label>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Gigs Grid/List */}
           <div className="flex-1">
-            {loading && <p className="text-gray-600">Loading gigs...</p>}
-            {error && <p className="text-red-500">{error}</p>}
+            {loading && (
+              <p className="text-teal-300 text-center text-xl">Loading gigs...</p>
+            )}
+            {error && (
+              <Card className="mb-8 border-0 bg-gradient-to-br from-red-800/50 to-red-900/50 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <p className="text-red-300 text-center font-medium">{error}</p>
+                </CardContent>
+              </Card>
+            )}
             {!loading && !error && (
-              <div className="mb-4 text-sm text-gray-600">
+              <div className="mb-4 text-sm text-gray-300">
                 Showing {filteredGigs.length} results
               </div>
             )}
-            {!loading && !error && filteredGigs.length ===0}
+            {!loading && !error && filteredGigs.length === 0 && (
+              <p className="text-gray-300 text-center">No gigs found matching your criteria.</p>
+            )}
             <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-              {filteredGigs.map((gig) => (
+              {filteredGigs.map((gig, index) => (
                 <Link key={gig.id} href={`/gigs/${gig.id}`} className="group">
-                  <div className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border ${viewMode === "list" ? "flex" : ""}`}>
+                  <Card className={`relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm hover:scale-105 transition-all duration-500 ${viewMode === "list" ? "flex" : ""}`}>
+                    <div
+                      className={`absolute -inset-1 bg-gradient-to-r ${categories[index % categories.length].color} rounded-xl blur opacity-0 group-hover:opacity-50 transition-all duration-500`}
+                    ></div>
                     <div className={`relative ${viewMode === "list" ? "w-64" : ""}`}>
                       <Image
-  src={gig.image}
-  alt={gig.title}
-  width={800} // You can adjust this as needed
-  height={192} // h-48 = 192px
-  className={`object-cover ${viewMode === "list" ? "w-full h-48 rounded-l-lg" : "w-full h-48 rounded-t-lg"}`}
-/>
-                      <div className="absolute top-3 right-3 bg-black/20 text-white px-2 py-1 rounded text-sm">
-                        ❤️
-                      </div>
+                        src={gig.image || "/placeholder.jpg"}
+                        alt={gig.title || "Untitled Gig"}
+                        width={300}
+                        height={300}
+                        className={`object-cover ${viewMode === "list" ? "w-full h-48 rounded-l-lg" : "w-full h-48 rounded-t-lg"} group-hover:scale-110 transition-transform duration-500`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <Badge
+                        className={`absolute top-3 left-3 bg-gradient-to-r ${categories[index % categories.length].color} text-white border-0 shadow-lg`}
+                      >
+                        {gig.category || "Featured"}
+                      </Badge>
                     </div>
 
-                    <div className={`p-4 ${viewMode === "list" ? "flex-1" : ""}`}>
+                    <CardContent className={`p-4 ${viewMode === "list" ? "flex-1" : ""}`}>
                       <div className="flex items-center mb-2">
-                       <Image
-  src={gig.sellerAvatar}
-  alt={gig.seller || "Seller"}
-  width={24} // w-6 = 24px
-  height={24} // h-6 = 24px
-  className="rounded-full mr-2"
-/>
-                        <span className="text-sm font-medium text-gray-700">{gig.seller || "Unknown"}</span>
+                        <Image
+                          src={gig.sellerAvatar || "/default-avatar.png"}
+                          alt={gig.seller || "Seller"}
+                          width={24}
+                          height={24}
+                          className="rounded-full mr-2"
+                        />
+                        <span className="text-sm font-medium text-gray-300 group-hover:text-teal-300 transition-colors duration-300">
+                          {gig.seller || "Unknown"}
+                        </span>
                       </div>
 
-                      <h3 className="font-medium text-gray-900 mb-2 group-hover:text-green-600 transition-colors line-clamp-2">
-                        {gig.title}
+                      <h3 className="font-bold text-white mb-2 line-clamp-2 group-hover:text-teal-300 transition-colors duration-300">
+                        {gig.title || "Untitled Gig"}
                       </h3>
 
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm text-gray-600 ml-1">{gig.rating} ({gig.reviews})</span>
+                        <span className="text-sm text-gray-300 ml-1">{gig.rating || 0} ({gig.reviews || 0})</span>
                       </div>
 
-                      <div className="flex items-center mb-2 text-sm text-gray-500">
-                        <span>Delivery: {gig.packages.basic.delivery} days</span>
+                      <div className="flex items-center mb-2 text-sm text-gray-400">
+                        <span>Delivery: {gig.packages?.basic?.delivery || "N/A"} days</span>
                       </div>
 
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-500 text-sm">Starting at</span>
-                        <span className="font-bold text-gray-900">₹{gig.packages.basic.price}</span>
+                        <span className="text-gray-400 text-sm">Starting at</span>
+                        <span className={`font-bold text-xl bg-gradient-to-r ${categories[index % categories.length].color} bg-clip-text text-transparent`}>
+                          ₹{gig.packages?.basic?.price || 0}
+                        </span>
                       </div>
-                    </div>
-                  </div>
+                      <div className="absolute top-3 right-3 w-2 h-2 bg-teal-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-500"></div>
+                    </CardContent>
+                  </Card>
                 </Link>
               ))}
             </div>
 
-            {/* Pagination */}
             <div className="flex justify-center mt-12">
               <nav className="flex space-x-2">
-                <button className="px-3 py-2 text-sm text-gray-500 hover:text-green-600">Previous</button>
-                <button className="px-3 py-2 text-sm bg-green-500 text-white rounded">1</button>
-                <button className="px-3 py-2 text-sm text-gray-500 hover:text-green-600">2</button>
-                <button className="px-3 py-2 text-sm text-gray-500 hover:text-green-600">3</button>
-                <button className="px-3 py-2 text-sm text-gray-500 hover:text-green-600">Next</button>
+                <Button
+                  className="px-3 py-2 text-sm text-gray-400 hover:text-teal-300 bg-transparent"
+                  variant="ghost"
+                >
+                  Previous
+                </Button>
+                <Button className="px-3 py-2 text-sm bg-gradient-to-r from-teal-400 to-cyan-400 text-white rounded-lg">
+                  1
+                </Button>
+                <Button
+                  className="px-3 py-2 text-sm text-gray-400 hover:text-teal-300 bg-transparent"
+                  variant="ghost"
+                >
+                  2
+                </Button>
+                <Button
+                  className="px-3 py-2 text-sm text-gray-400 hover:text-teal-300 bg-transparent"
+                  variant="ghost"
+                >
+                  3
+                </Button>
+                <Button
+                  className="px-3 py-2 text-sm text-gray-400 hover:text-teal-300 bg-transparent"
+                  variant="ghost"
+                >
+                  Next
+                </Button>
               </nav>
             </div>
           </div>

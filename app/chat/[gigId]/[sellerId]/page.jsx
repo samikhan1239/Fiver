@@ -1,9 +1,12 @@
+// Chat.tsx
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import jwt from "jsonwebtoken";
 import ChatBox from "../../../../components/ChatBox";
+import { Card, CardContent } from "@/components/ui/card";
+import { MessageCircle } from "lucide-react";
 
 export default function Chat() {
   const { gigId, sellerId } = useParams();
@@ -14,7 +17,6 @@ export default function Chat() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Get user from JWT token
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!token) {
@@ -40,11 +42,9 @@ export default function Chat() {
     }
   }, [router]);
 
-  // Fetch initial messages and set up WebSocket
   useEffect(() => {
     if (!user || !gigId || !sellerId) return;
 
-    // Fetch initial messages
     async function fetchMessages() {
       try {
         const res = await fetch(`/api/messages?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`, {
@@ -71,7 +71,6 @@ export default function Chat() {
     }
     fetchMessages();
 
-    // Set up WebSocket with reconnection
     const connectWebSocket = () => {
       const websocket = new WebSocket(
         `wss://server-1-v0qz.onrender.com/?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`
@@ -115,7 +114,7 @@ export default function Chat() {
       websocket.onclose = () => {
         console.log("WebSocket closed, attempting to reconnect...");
         setWs(null);
-        setTimeout(connectWebSocket, 3000); // Reconnect after 3s
+        setTimeout(connectWebSocket, 3000);
       };
 
       return websocket;
@@ -136,7 +135,6 @@ export default function Chat() {
       return;
     }
 
-    // Optimistically add message to UI
     const tempId = `temp-${Date.now()}`;
     const optimisticMessage = {
       _id: tempId,
@@ -151,9 +149,8 @@ export default function Chat() {
     console.log("Optimistically added message:", optimisticMessage);
 
     try {
-      // Send message via WebSocket
       const wsMessage = {
-        gigId: gigId.toString(), // Ensure string for WebSocket
+        gigId: gigId.toString(),
         senderId: user.id.toString(),
         recipientId: user.id === sellerId ? null : sellerId.toString(),
         text,
@@ -163,7 +160,6 @@ export default function Chat() {
       ws.send(JSON.stringify(wsMessage));
       console.log("Sent WebSocket message:", wsMessage);
 
-      // Save message to MongoDB with slight delay
       setTimeout(async () => {
         try {
           const apiPayload = {
@@ -188,7 +184,6 @@ export default function Chat() {
           }
           console.log("Message saved to API:", responseData);
 
-          // Replace optimistic message with saved message
           setMessages((prev) =>
             prev.map((msg) =>
               msg._id === tempId
@@ -205,7 +200,7 @@ export default function Chat() {
           setError(err.message);
           setMessages((prev) => prev.filter((msg) => msg._id !== tempId));
         }
-      }, 100); // Delay to avoid race condition
+      }, 100);
     } catch (err) {
       console.error("WebSocket send error:", {
         message: err.message,
@@ -219,47 +214,62 @@ export default function Chat() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-red-500">Please log in to access chat</p>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <Card className="border-0 bg-red-800/50 backdrop-blur-sm rounded-xl">
+          <CardContent className="p-6">
+            <p className="text-red-300 text-center font-medium flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Please log in to access chat
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Loading chat...</p>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <Card className="border-0 bg-gray-800/90 backdrop-blur-sm rounded-xl">
+          <CardContent className="p-6">
+            <p className="text-teal-300 text-lg font-medium flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 animate-pulse" />
+              Loading chat...
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-red-500">{error}</p>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <Card className="border-0 bg-red-800/50 backdrop-blur-sm rounded-xl">
+          <CardContent className="p-6">
+            <p className="text-red-300 text-center font-medium flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              {error}
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <nav className="text-sm text-gray-500 mb-6">
-          <Link href="/" className="hover:text-green-600">
-            Home
-          </Link>
-          <span className="mx-2">/</span>
-          <Link href="/gigs" className="hover:text-green-600">
-            Gigs
-          </Link>
-          <span className="mx-2">/</span>
-          <Link href={`/gigs/${gigId}`} className="hover:text-green-600">
-            Gig
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-900">Chat</span>
-        </nav>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Chat with Seller</h2>
+    <div className="min-h-screen bg-gray-900 flex flex-col">
+      <nav className="p-4 sm:p-6 bg-gray-800/95 border-b border-gray-700/50 flex items-center">
+        <Link href="/messages" className="text-teal-300 hover:text-teal-400 transition-colors mr-4">
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <h2 className="text-xl font-semibold text-white bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+          Chat with Seller
+        </h2>
+      </nav>
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
         <ChatBox messages={messages} sendMessage={sendMessage} userId={user.id} />
       </div>
     </div>

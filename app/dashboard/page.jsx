@@ -1,23 +1,17 @@
-
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, TrendingUp, DollarSign, Clock, Star, Eye, MessageCircle, Edit, Trash2, BarChart3 } from "lucide-react";
+import { Plus, Clock, Star, MessageCircle, Edit, Trash2 } from "lucide-react";
 import jwt from "jsonwebtoken";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [stats, setStats] = useState({
-    totalEarnings: 0,
-    activeOrders: 0,
-    completedOrders: 0,
-    avgRating: 0,
-    totalViews: 0,
-    messagesUnread: 0,
-  });
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
   const [myGigs, setMyGigs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,6 +21,17 @@ export default function Dashboard() {
   const token = useMemo(() => typeof window !== "undefined" ? localStorage.getItem("token") : null, []);
   const user = useMemo(() => token ? jwt.decode(token) : null, [token]);
 
+  const categories = [
+    { name: "Graphics & Design", color: "from-coral-400 to-red-500" },
+    { name: "Digital Marketing", color: "from-teal-400 to-cyan-500" },
+    { name: "Writing & Translation", color: "from-lime-400 to-green-500" },
+    { name: "Video & Animation", color: "from-orange-400 to-red-500" },
+    { name: "Music & Audio", color: "from-purple-400 to-pink-500" },
+    { name: "Programming & Tech", color: "from-blue-400 to-indigo-500" },
+    { name: "Data", color: "from-pink-400 to-purple-500" },
+    { name: "Business", color: "from-emerald-400 to-teal-500" },
+  ];
+
   useEffect(() => {
     if (!token || !user || !user.id) {
       console.error("No valid token or user ID found:", { token, user });
@@ -34,7 +39,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Fetch stats, orders, and gigs
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -58,12 +62,8 @@ export default function Dashboard() {
           }
         };
 
-        const [statsData, ordersData, gigsData] = await Promise.all([
-          fetchWithTimeout(`/api/stats?sellerId=${user.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: "no-store",
-          }),
-          fetchWithTimeout(`/api/order?userId=${user.id}`, { // Changed to /api/orders and userId
+        const [ordersData, gigsData] = await Promise.all([
+          fetchWithTimeout(`/api/order?userId=${user.id}&status=active`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
           }),
@@ -73,10 +73,9 @@ export default function Dashboard() {
           }),
         ]);
 
-        console.log("Fetched data:", { statsData, ordersData, gigsData });
+        console.log("Fetched data:", { ordersData, gigsData });
 
-        setStats(statsData || {});
-        setRecentOrders(Array.isArray(ordersData) ? ordersData : []);
+        setActiveOrders(Array.isArray(ordersData) ? ordersData : []);
         setMyGigs(Array.isArray(gigsData) ? gigsData : []);
       } catch (err) {
         console.error("Fetch error:", {
@@ -93,7 +92,6 @@ export default function Dashboard() {
     fetchData();
   }, [router, token, user]);
 
-  // Deliver order handler
   const handleDeliverOrder = async (orderId) => {
     try {
       const response = await fetch(`/api/orders/${orderId}/deliver`, {
@@ -106,7 +104,7 @@ export default function Dashboard() {
       if (!response.ok) {
         throw new Error(`Failed to deliver order: ${response.status} ${response.statusText}`);
       }
-      setRecentOrders((orders) =>
+      setActiveOrders((orders) =>
         orders.map((order) =>
           order._id === orderId ? { ...order, status: "completed" } : order
         )
@@ -125,425 +123,372 @@ export default function Dashboard() {
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800";
+        return "from-green-400 to-teal-500";
       case "paused":
-        return "bg-yellow-100 text-yellow-800";
+        return "from-yellow-400 to-orange-500";
       case "completed":
-        return "bg-blue-100 text-blue-800";
+        return "from-blue-400 to-indigo-500";
       case "in_progress":
-        return "bg-purple-100 text-purple-800";
+        return "from-purple-400 to-pink-500";
       case "pending":
-        return "bg-gray-100 text-gray-800";
+        return "from-gray-400 to-gray-500";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "from-gray-400 to-gray-500";
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black flex items-center justify-center">
+        <p className="text-teal-300 text-xl">Loading...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-red-500">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black flex items-center justify-center">
+        <p className="text-red-400 text-xl">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(20,184,166,0.1),transparent_50%)]"></div>
+      <div className="container mx-auto px-4 py-12 relative">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600">Manage your services and track your performance</p>
-          </div>
-          <Link
-            href="/gigs/create"
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Create New Gig
-          </Link>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
-            <div className="flex items-center">
-              <DollarSign className="h-8 w-8 text-green-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                <p className="text-2xl font-bold text-gray-900">₹{(stats.totalEarnings || 0).toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-blue-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeOrders || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-purple-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedOrders || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-500">
-            <div className="flex items-center">
-              <Star className="h-8 w-8 text-yellow-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Avg Rating</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.avgRating || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
-            <div className="flex items-center">
-              <Eye className="h-8 w-8 text-indigo-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Views</p>
-                <p className="text-2xl font-bold text-gray-900">{(stats.totalViews || 0).toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-pink-500">
-            <div className="flex items-center">
-              <MessageCircle className="h-8 w-8 text-pink-500" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Messages</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.messagesUnread || 0}</p>
-              </div>
-            </div>
-          </div>
+        <div className="text-center mb-16">
+          <Badge className="bg-gradient-to-r from-teal-400/20 to-cyan-400/20 text-teal-300 border-teal-400/30 mb-6 px-4 py-2">
+            🚀 Seller Dashboard
+          </Badge>
+          <h1 className="text-5xl md:text-6xl font-black mb-4">
+            <span className="bg-gradient-to-r from-teal-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              Manage Your
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-coral-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+              Freelance Empire
+            </span>
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            Track your active orders, manage your gigs, and grow your business.
+          </p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
+        <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-xl mb-8 border border-gray-700/50">
+          <nav className="flex justify-center space-x-8 px-6 py-4">
+            {["overview", "gigs", "orders"].map((tab) => (
               <button
-                onClick={() => setActiveTab("overview")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "overview"
-                    ? "border-green-500 text-green-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-3 px-4 font-medium text-sm transition-all duration-300 ${
+                  activeTab === tab
+                    ? "bg-gradient-to-r from-teal-400 to-cyan-400 text-white rounded-lg"
+                    : "text-gray-400 hover:text-teal-300"
                 }`}
               >
-                Overview
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
-              <button
-                onClick={() => setActiveTab("gigs")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "gigs"
-                    ? "border-green-500 text-green-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                My Gigs
-              </button>
-              <button
-                onClick={() => setActiveTab("orders")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "orders"
-                    ? "border-green-500 text-green-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Orders
-              </button>
-              <button
-                onClick={() => setActiveTab("analytics")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "analytics"
-                    ? "border-green-500 text-green-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Analytics
-              </button>
-            </nav>
-          </div>
+            ))}
+          </nav>
         </div>
 
         {/* Tab Content */}
         {activeTab === "overview" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold mb-4">Recent Orders</h2>
-              <div className="space-y-4">
-                {recentOrders.length === 0 ? (
-                  <p className="text-gray-600">No recent orders found.</p>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                Active Orders
+              </h2>
+              <div className="space-y-6">
+                {activeOrders.length === 0 ? (
+                  <p className="text-gray-300 text-center">No active orders found.</p>
                 ) : (
-                  recentOrders.map((order) => (
-                    <div key={order._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <Image
-  src={order.buyer?.avatar || "/default-avatar.png"}
-  alt={order.buyer?.name || "Unknown"}
-  width={40} // w-10 = 40px
-  height={40} // h-10 = 40px
-  className="rounded-full mr-3"
-/>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{order.title || "Untitled Order"}</h3>
-                          <p className="text-sm text-gray-600">
-                            {user.id === order.sellerId ? `Buyer: ${order.buyer?.name || "Unknown"}` : `Seller: ${order.seller?.name || "Unknown"}`}
-                          </p>
+                  activeOrders.map((order, index) => (
+                    <Card
+                      key={order._id}
+                      className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm hover:scale-105 transition-all duration-500 group"
+                    >
+                      <div
+                        className={`absolute -inset-1 bg-gradient-to-r ${categories[index % categories.length].color} rounded-xl blur opacity-0 group-hover:opacity-50 transition-all duration-500`}
+                      ></div>
+                      <CardContent className="p-6 relative">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <Image
+                              src={order.buyer?.avatar || "/default-avatar.png"}
+                              alt={order.buyer?.name || "Unknown"}
+                              width={48}
+                              height={48}
+                              className="rounded-full mr-4"
+                            />
+                            <div>
+                              <h3 className="font-bold text-white line-clamp-1 group-hover:text-teal-300 transition-colors duration-300">
+                                {order.title || "Untitled Order"}
+                              </h3>
+                              <p className="text-sm text-gray-300">
+                                Buyer: {order.buyer?.name || "Unknown"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-bold text-xl bg-gradient-to-r ${categories[index % categories.length].color} bg-clip-text text-transparent`}>
+                              ₹{order.price || 0}
+                            </p>
+                            <Badge
+                              className={`mt-2 bg-gradient-to-r ${getStatusColor(order.status)} text-white border-0`}
+                            >
+                              {order.status?.replace("_", " ") || "Unknown"}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900">₹{order.price || 0}</p>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                            order.status
-                          )}`}
-                        >
-                          {order.status?.replace("_", " ") || "Unknown"}
-                        </span>
-                      </div>
-                    </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-400">
+                            Deadline: {order.deadline ? new Date(order.deadline).toLocaleDateString() : "Not specified"}
+                          </span>
+                          <div className="flex space-x-2">
+                            {user.id === order.sellerId && order.status === "active" && (
+                              <Button
+                                onClick={() => handleDeliverOrder(order._id)}
+                                className="bg-gradient-to-r from-coral-500 to-orange-500 hover:from-coral-600 hover:to-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg"
+                              >
+                                Deliver Order
+                              </Button>
+                            )}
+                            <Button
+                              asChild
+                              className="border border-teal-400/50 text-teal-300 hover:bg-teal-400/20 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+                            >
+                              <Link href={`/chat/${order.gigId}/${order.buyerId}`}>
+                                Message Buyer
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="absolute top-3 right-3 w-2 h-2 bg-teal-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-500"></div>
+                      </CardContent>
+                    </Card>
                   ))
                 )}
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 gap-4">
-                <Link
-                  href="/create-service"
-                  className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-                >
-                  <Plus className="h-8 w-8 text-green-500 mr-3" />
-                  <div>
-                    <h3 className="font-medium text-gray-900">Create New Gig</h3>
-                    <p className="text-sm text-gray-600">Start selling a new service</p>
-                  </div>
-                </Link>
-                <Link
-                  href="/messages"
-                  className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                >
-                  <MessageCircle className="h-8 w-8 text-blue-500 mr-3" />
-                  <div>
-                    <h3 className="font-medium text-gray-900">Check Messages</h3>
-                    <p className="text-sm text-gray-600">{stats.messagesUnread || 0} unread messages</p>
-                  </div>
-                </Link>
-                <button
-                  onClick={() => setActiveTab("analytics")}
-                  className="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-                >
-                  <BarChart3 className="h-8 w-8 text-purple-500 mr-3" />
-                  <div>
-                    <h3 className="font-medium text-gray-900">View Analytics</h3>
-                    <p className="text-sm text-gray-600">Track your performance</p>
-                  </div>
-                </button>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                Quick Actions
+              </h2>
+              <div className="grid grid-cols-1 gap-6">
+                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm hover:scale-105 transition-all duration-500 group">
+                  <div
+                    className="absolute -inset-1 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-xl blur opacity-0 group-hover:opacity-30 transition-all duration-500"
+                  ></div>
+                  <CardContent className="p-6 relative">
+                    <Link href="/gigs/create" className="flex items-center">
+                      <div className="w-12 h-12 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-full flex items-center justify-center mr-4 group-hover:rotate-12 transition-transform duration-500">
+                        <Plus className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white group-hover:text-teal-300 transition-colors duration-300">
+                          Create New Gig
+                        </h3>
+                        <p className="text-sm text-gray-300">Start selling a new service</p>
+                      </div>
+                    </Link>
+                    <div className="absolute bottom-4 left-4 w-1 h-1 bg-coral-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-700"></div>
+                  </CardContent>
+                </Card>
+
+                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm hover:scale-105 transition-all duration-500 group">
+                  <div
+                    className="absolute -inset-1 bg-gradient-to-r from-coral-400 to-orange-500 rounded-xl blur opacity-0 group-hover:opacity-30 transition-all duration-500"
+                  ></div>
+                  <CardContent className="p-6 relative">
+                    <Link href="/messages" className="flex items-center">
+                      <div className="w-12 h-12 bg-gradient-to-r from-coral-400 to-orange-500 rounded-full flex items-center justify-center mr-4 group-hover:rotate-12 transition-transform duration-500">
+                        <MessageCircle className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white group-hover:text-teal-300 transition-colors duration-300">
+                          Check Messages
+                        </h3>
+                        <p className="text-sm text-gray-300">Stay connected with your clients</p>
+                      </div>
+                    </Link>
+                    <div className="absolute bottom-4 left-4 w-1 h-1 bg-teal-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-700"></div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
         )}
 
         {activeTab === "gigs" && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold">My Gigs</h2>
-              <Link
-                href="/create-service"
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+          <div>
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                My Gigs
+              </h2>
+              <Button
+                asChild
+                className="bg-gradient-to-r from-coral-500 to-orange-500 hover:from-coral-600 hover:to-orange-600 text-white px-6 py-3 rounded-lg font-medium shadow-lg"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Create New
-              </Link>
+                <Link href="/gigs/create">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Create New Gig
+                </Link>
+              </Button>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Gig</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Price</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Rating</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Views</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Orders</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myGigs.length === 0 ? (
-                    <tr>
-                      <td colSpan="7" className="py-4 px-4 text-center text-gray-600">
-                        No gigs found.
-                      </td>
-                    </tr>
-                  ) : (
-                    myGigs.map((gig) => (
-                      <tr key={gig._id} className="border-b border-gray-100">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center">
-                           <Image
-  src={gig.image || "/placeholder.jpg"}
-  alt={gig.title || "Untitled Gig"}
-  width={48}
-  height={48}
-  className="rounded-lg mr-3"
-/>
-                            <div>
-                              <h3 className="font-medium text-gray-900 line-clamp-1">{gig.title || "Untitled Gig"}</h3>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="font-medium">₹{gig.price || 0}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                            <span>
-                              {gig.rating || 0} ({gig.reviews || 0})
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span>{(gig.views || 0).toLocaleString()}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span>{gig.orders || 0}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                              gig.status
-                            )}`}
-                          >
-                            {gig.status || "Unknown"}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex space-x-2">
-                            <Link
-                              href={`/edit-gig/${gig._id}`}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Link>
-                            <button className="text-red-600 hover:text-red-800">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "orders" && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold mb-6">Order Management</h2>
-            <div className="space-y-4">
-              {recentOrders.length === 0 ? (
-                <p className="text-gray-600">No orders found.</p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {myGigs.length === 0 ? (
+                <p className="text-gray-300 text-center col-span-full">No gigs found.</p>
               ) : (
-                recentOrders.map((order) => (
-                  <div key={order._id} className="border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                       <Image
-  src={order.buyer?.avatar || "/default-avatar.png"}
-  alt={order.buyer?.name || "Unknown"}
-  width={48}
-  height={48}
-  className="rounded-full mr-4"
-/>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{order.title || "Untitled Order"}</h3>
-                          <p className="text-sm text-gray-600">
-                            {user.id === order.sellerId ? `Buyer: ${order.buyer?.name || "Unknown"}` : `Seller: ${order.seller?.name || "Unknown"}`}
-                          </p>
+                myGigs.map((gig, index) => (
+                  <Card
+                    key={gig._id}
+                    className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm hover:scale-105 transition-all duration-500 group"
+                  >
+                    <div
+                      className={`absolute -inset-1 bg-gradient-to-r ${categories[index % categories.length].color} rounded-xl blur opacity-0 group-hover:opacity-50 transition-all duration-500`}
+                    ></div>
+                    <div className="relative">
+                      <div className="relative overflow-hidden">
+                        <Image
+                          src={gig.image || "/placeholder.jpg"}
+                          alt={gig.title || "Untitled Gig"}
+                          width={300}
+                          height={192}
+                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        <Badge
+                          className={`absolute top-3 left-3 bg-gradient-to-r ${categories[index % categories.length].color} text-white border-0 shadow-lg`}
+                        >
+                          {gig.category || "Featured"}
+                        </Badge>
+                      </div>
+                      <CardContent className="p-6">
+                        <h3 className="font-bold text-white mb-4 line-clamp-2 group-hover:text-teal-300 transition-colors duration-300">
+                          {gig.title || "Untitled Gig"}
+                        </h3>
+                        <div className="flex items-center mb-4">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
+                          <span className="text-sm font-semibold text-white">{gig.rating || 0}</span>
+                          <span className="text-sm text-gray-400 ml-1">({gig.reviews || 0})</span>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900">₹{order.price || 0}</p>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                            order.status
-                          )}`}
-                        >
-                          {order.status?.replace("_", " ") || "Unknown"}
-                        </span>
-                      </div>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-sm text-gray-400">Views: {(gig.views || 0).toLocaleString()}</span>
+                          <span className="text-sm text-gray-400">Orders: {gig.orders || 0}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className={`text-2xl font-black bg-gradient-to-r ${categories[index % categories.length].color} bg-clip-text text-transparent`}>
+                            ₹{gig.price || 0}
+                          </span>
+                          <div className="flex space-x-2">
+                            <Button
+                              asChild
+                              className="text-teal-300 hover:text-teal-400"
+                              variant="ghost"
+                            >
+                              <Link href={`/edit-gig/${gig._id}`}>
+                                <Edit className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            <Button
+                              className="text-red-400 hover:text-red-500"
+                              variant="ghost"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="absolute top-3 right-3 w-2 h-2 bg-teal-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-500"></div>
+                      </CardContent>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">
-                        Deadline: {order.deadline ? new Date(order.deadline).toLocaleDateString() : "Not specified"}
-                      </span>
-                      <div className="flex space-x-2">
-                        {user.id === order.sellerId && order.status === "pending" && (
-                          <button
-                            onClick={() => handleDeliverOrder(order._id)}
-                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            Deliver Order
-                          </button>
-                        )}
-                        <Link
-                          href={`/chat/${order.gigId}/${user.id === order.sellerId ? order.buyerId : order.sellerId}`}
-                          className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                        >
-                          {user.id === order.sellerId ? "Message Buyer" : "Message Seller"}
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
+                  </Card>
                 ))
               )}
             </div>
           </div>
         )}
 
-        {activeTab === "analytics" && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold mb-6">Analytics & Performance</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="font-medium text-gray-900 mb-4">Earnings Overview</h3>
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  <BarChart3 className="h-16 w-16" />
-                  <span className="ml-2">Chart placeholder</span>
-                </div>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="font-medium text-gray-900 mb-4">Order Trends</h3>
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  <TrendingUp className="h-16 w-16" />
-                  <span className="ml-2">Chart placeholder</span>
-                </div>
-              </div>
+        {activeTab === "orders" && (
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+              Active Orders
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activeOrders.length === 0 ? (
+                <p className="text-gray-300 text-center col-span-full">No active orders found.</p>
+              ) : (
+                activeOrders.map((order, index) => (
+                  <Card
+                    key={order._id}
+                    className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm hover:scale-105 transition-all duration-500 group"
+                  >
+                    <div
+                      className={`absolute -inset-1 bg-gradient-to-r ${categories[index % categories.length].color} rounded-xl blur opacity-0 group-hover:opacity-50 transition-all duration-500`}
+                    ></div>
+                    <CardContent className="p-6 relative">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <Image
+                            src={order.buyer?.avatar || "/default-avatar.png"}
+                            alt={order.buyer?.name || "Unknown"}
+                            width={48}
+                            height={48}
+                            className="rounded-full mr-4"
+                          />
+                          <div>
+                            <h3 className="font-bold text-white line-clamp-1 group-hover:text-teal-300 transition-colors duration-300">
+                              {order.title || "Untitled Order"}
+                            </h3>
+                            <p className="text-sm text-gray-300">
+                              Buyer: {order.buyer?.name || "Unknown"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold text-xl bg-gradient-to-r ${categories[index % categories.length].color} bg-clip-text text-transparent`}>
+                            ₹{order.price || 0}
+                          </p>
+                          <Badge
+                            className={`mt-2 bg-gradient-to-r ${getStatusColor(order.status)} text-white border-0`}
+                          >
+                            {order.status?.replace("_", " ") || "Unknown"}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-400">
+                          Deadline: {order.deadline ? new Date(order.deadline).toLocaleDateString() : "Not specified"}
+                        </span>
+                        <div className="flex space-x-2">
+                          {user.id === order.sellerId && order.status === "active" && (
+                            <Button
+                              onClick={() => handleDeliverOrder(order._id)}
+                              className="bg-gradient-to-r from-coral-500 to-orange-500 hover:from-coral-600 hover:to-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg"
+                            >
+                              Deliver Order
+                            </Button>
+                          )}
+                          <Button
+                            asChild
+                            className="border border-teal-400/50 text-teal-300 hover:bg-teal-400/20 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+                          >
+                            <Link href={`/chat/${order.gigId}/${order.buyerId}`}>
+                              Message Buyer
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="absolute top-3 right-3 w-2 h-2 bg-teal-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-500"></div>
+                      <div className="absolute bottom-3 left-3 w-1 h-1 bg-coral-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-700"></div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         )}
