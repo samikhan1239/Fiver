@@ -453,7 +453,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12">
             <div className="lg:col-span-2">
               <h3 className="text-4xl font-black bg-gradient-to-r from-teal-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-6">
-                FreelanceHub
+                TalentSync
               </h3>
               <p className="text-gray-300 mb-8 text-lg leading-relaxed">
                 The future of freelancing is here. Connect, create, and conquer with the world&apos;s most advanced talent
@@ -508,7 +508,7 @@ export default function Home() {
           </div>
           <div className="border-t border-gray-800 mt-16 pt-8 text-center">
             <p className="text-gray-400 text-lg">
-              © 2025 FreelanceHub. Revolutionizing creativity, one project at a time.
+              © 2025 TalentSync. Revolutionizing creativity, one project at a time.
             </p>
           </div>
         </div>

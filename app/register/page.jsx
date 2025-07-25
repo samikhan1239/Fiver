@@ -107,27 +107,7 @@ export default function Register() {
         <div className="pulsing-orb orb-3"></div>
       </div>
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-teal-500/30 shadow-lg shadow-teal-500/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-4xl font-black text-teal-500">
-              FIVERR
-            </Link>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-300 text-base">Already have an account?</span>
-              <Link href="/login">
-                <Button
-                  variant="outline"
-                  className="border-teal-500/50 text-teal-500 hover:bg-teal-500/10 bg-transparent backdrop-blur-sm text-base px-6 py-2.5"
-                >
-                  Login
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      
 
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4 sm:px-6">
         <Card className="w-full max-w-lg bg-gray-800/95 border-0 rounded-2xl shadow-2xl backdrop-blur-lg relative overflow-hidden">
