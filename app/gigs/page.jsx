@@ -267,7 +267,7 @@ export default function Gigs() {
                         alt={gig.title || "Untitled Gig"}
                         width={300}
                         height={300}
-                        className={`object-cover ${viewMode === "list" ? "w-full h-48 rounded-l-lg" : "w-full h-48 rounded-t-lg"} group-hover:scale-110 transition-transform duration-500`}
+                        className={`object-contain ${viewMode === "list" ? "w-full h-48 rounded-l-lg" : "w-full h-48 rounded-t-lg"} group-hover:scale-110 transition-transform duration-500`}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                       <Badge

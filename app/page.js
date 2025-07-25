@@ -269,7 +269,7 @@ export default function Home() {
             <div className="text-center text-gray-300">No services available.</div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {allServices.map((service) => (
+              {allServices.slice(0,3).map((service) => (
                 <Link key={service.id} href={`/gigs/${service.id}`} className="group">
                   <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm hover:scale-105 transition-all duration-500">
                     <div
@@ -277,16 +277,16 @@ export default function Home() {
                     ></div>
                     <div className="relative">
                       <div className="relative overflow-hidden">
-                        <Image
-                          src={
-                            service.image ||
-                            "https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=300"
-                          }
-                          alt={service.title}
-                          width={300}
-                          height={192}
-                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
+                       <Image
+  src={
+    service.image ||
+    "https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=300"
+  }
+  alt={service.title}
+  width={300}
+  height={192}
+  className="w-full h-48 object-contain group-hover:scale-110 transition-transform duration-500"
+/>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                         <Badge
                           className={`absolute top-3 left-3 bg-gradient-to-r ${categories[0].color} text-white border-0 shadow-lg`}
