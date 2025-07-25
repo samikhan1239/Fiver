@@ -86,9 +86,9 @@ export default function Gigs() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(20,184,166,0.1),transparent_50%)]"></div>
+      
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from inky-400/20 to-orange-400/20 rounded-full blur-xl animate-bounce" />
+
         <div className="absolute bottom-32 right-40 w-40 h-40 bg-gradient-to-r from-teal-400/20 to-cyan-400/20 rounded-full blur-2xl animate-pulse" />
       </div>
       <div className="container mx-auto px-4 py-12 relative">
@@ -101,9 +101,10 @@ export default function Gigs() {
               Discover
             </span>
             <br />
-            <span className="bg-gradient-to-r from-coral-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
-              Freelance Talent
-            </span>
+           <span className="bg-gradient-to-r from-coral-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+  Freelance Talent
+</span>
+
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Find the perfect service for your project from thousands of talented freelancers.

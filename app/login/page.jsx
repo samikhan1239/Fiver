@@ -2,6 +2,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,7 +33,7 @@ export default function LoginPage() {
 
       localStorage.setItem("token", data.token);
       console.log("Login successful, token saved:", data.token);
-      router.push("/gigs"); // Redirect to gigs page after login
+      router.push("/gigs");
     } catch (err) {
       console.error("Login error:", {
         message: err.message,
@@ -43,46 +47,321 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-md w-full mx-auto p-6 bg-white rounded-lg shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Login</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-        <p className="mt-4 text-gray-600">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-green-600 hover:text-green-700">
-            Register
-          </Link>
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black relative overflow-hidden">
+      {/* Animated Grid Background */}
+      <div className="fixed inset-0 opacity-10">
+        <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-cyan-500/20">
+          <div className="grid-background"></div>
+        </div>
       </div>
+
+      {/* Floating Geometric Shapes */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="floating-shape shape-1"></div>
+        <div className="floating-shape shape-2"></div>
+        <div className="floating-shape shape-3"></div>
+        <div className="floating-shape shape-4"></div>
+        <div className="floating-shape shape-5"></div>
+        <div className="floating-shape shape-6"></div>
+      </div>
+
+      {/* Animated Wave Lines */}
+      <div className="fixed inset-0 pointer-events-none opacity-30">
+        <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.3" />
+              <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.3" />
+            </linearGradient>
+          </defs>
+          <path className="wave-path wave-1" fill="none" stroke="url(#waveGradient)" strokeWidth="2" />
+          <path className="wave-path wave-2" fill="none" stroke="url(#waveGradient)" strokeWidth="1.5" />
+          <path className="wave-path wave-3" fill="none" stroke="url(#waveGradient)" strokeWidth="1" />
+        </svg>
+      </div>
+
+      {/* Enhanced Particle System */}
+      <div className="fixed inset-0 pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-teal-500/40 rounded-full animate-float"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+              animationDelay: `${Math.random() * 2}s`,
+            }}
+          ></div>
+        ))}
+      </div>
+
+      {/* Pulsing Orbs */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="pulsing-orb orb-1"></div>
+        <div className="pulsing-orb orb-2"></div>
+        <div className="pulsing-orb orb-3"></div>
+      </div>
+
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-teal-500/30 shadow-lg shadow-teal-500/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-4xl font-black text-teal-500">
+              FIVERR
+            </Link>
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-300 text-base">Don&apos;t have an account?</span>
+              <Link href="/register">
+                <Button
+                  variant="outline"
+                  className="border-teal-500/50 text-teal-500 hover:bg-teal-500/10 bg-transparent backdrop-blur-sm text-base px-6 py-2.5"
+                >
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4 sm:px-6">
+        <Card className="w-full max-w-lg bg-gray-800/95 border-0 rounded-2xl shadow-2xl backdrop-blur-lg relative overflow-hidden">
+          {/* Holographic Border Effect */}
+          <div className="absolute -inset-1 bg-teal-500 rounded-2xl blur opacity-20 animate-pulse"></div>
+
+          <CardHeader className="relative text-center pb-8">
+            <CardTitle className="text-4xl font-bold text-teal-500">
+              Welcome Back
+            </CardTitle>
+            <p className="text-gray-300 text-base mt-3">Sign in to your freelancing account</p>
+          </CardHeader>
+
+          <CardContent className="space-y-8 relative">
+            {error && (
+              <p className="text-red-300 text-base flex items-center gap-2 justify-center">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {error}
+              </p>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email Field */}
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
+                <Input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-14 h-14 bg-gray-800/80 border-teal-500/40 text-white placeholder:text-gray-400/80 text-base rounded-lg focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 backdrop-blur-sm"
+                  required
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
+                <Input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-14 h-14 bg-gray-800/80 border-teal-500/40 text-white placeholder:text-gray-400/80 text-base rounded-lg focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 backdrop-blur-sm"
+                  required
+                />
+              </div>
+
+              {/* Login Button */}
+              <Button
+                type="submit"
+                disabled={loading}
+                className={`w-full h-14 bg-teal-500 hover:bg-teal-600 text-white text-base font-bold shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Logging In...</span>
+                  </div>
+                ) : (
+                  <span>Login</span>
+                )}
+              </Button>
+            </form>
+
+            {/* Sign Up Link */}
+            <div className="text-center pt-6 border-t border-gray-700/40">
+              <p className="text-gray-400 text-base">
+                Don&apos;t have an account?{" "}
+                <Link href="/register" className="text-teal-500 hover:text-teal-400 font-medium transition-colors">
+                  Register
+                </Link>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <style jsx>{`
+        .grid-background {
+          background-image: 
+            linear-gradient(rgba(20, 184, 166, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(20, 184, 166, 0.1) 1px, transparent 1px);
+          background-size: 50px 50px;
+          animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(50px, 50px); }
+        }
+
+        .floating-shape {
+          position: absolute;
+          border-radius: 50%;
+          background: linear-gradient(45deg, rgba(20, 184, 166, 0.1), rgba(6, 182, 212, 0.1));
+          animation: float 6s ease-in-out infinite;
+        }
+
+        .shape-1 {
+          width: 80px;
+          height: 80px;
+          top: 10%;
+          left: 10%;
+          animation-delay: 0s;
+        }
+
+        .shape-2 {
+          width: 120px;
+          height: 120px;
+          top: 20%;
+          right: 15%;
+          animation-delay: 1s;
+        }
+
+        .shape-3 {
+          width: 60px;
+          height: 60px;
+          bottom: 30%;
+          left: 20%;
+          animation-delay: 2s;
+        }
+
+        .shape-4 {
+          width: 100px;
+          height: 100px;
+          bottom: 20%;
+          right: 10%;
+          animation-delay: 3s;
+        }
+
+        .shape-5 {
+          width: 40px;
+          height: 40px;
+          top: 50%;
+          left: 5%;
+          animation-delay: 4s;
+        }
+
+        .shape-6 {
+          width: 90px;
+          height: 90px;
+          top: 70%;
+          right: 25%;
+          animation-delay: 5s;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33% { transform: translateY(-20px) rotate(120deg); }
+          66% { transform: translateY(10px) rotate(240deg); }
+        }
+
+        .wave-path {
+          animation: wave 8s ease-in-out infinite;
+        }
+
+        .wave-1 {
+          d: path("M0,100 Q250,50 500,100 T1000,100 T1500,100 T2000,100");
+          animation-delay: 0s;
+        }
+
+        .wave-2 {
+          d: path("M0,200 Q300,150 600,200 T1200,200 T1800,200 T2400,200");
+          animation-delay: 2s;
+        }
+
+        .wave-3 {
+          d: path("M0,300 Q200,250 400,300 T800,300 T1200,300 T1600,300");
+          animation-delay: 4s;
+        }
+
+        @keyframes wave {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-100px); }
+        }
+
+        .pulsing-orb {
+          position: absolute;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(20, 184, 166, 0.2), transparent);
+          animation: pulse 4s ease-in-out infinite;
+        }
+
+        .orb-1 {
+          width: 200px;
+          height: 200px;
+          top: 15%;
+          right: 10%;
+          animation-delay: 0s;
+        }
+
+        .orb-2 {
+          width: 150px;
+          height: 150px;
+          bottom: 25%;
+          left: 15%;
+          animation-delay: 1.5s;
+        }
+
+        .orb-3 {
+          width: 100px;
+          height: 100px;
+          top: 60%;
+          right: 30%;
+          animation-delay: 3s;
+        }
+
+        @keyframes pulse {
+          0%, 100% { 
+            transform: scale(1);
+            opacity: 0.3;
+          }
+          50% { 
+            transform: scale(1.2);
+            opacity: 0.1;
+          }
+        }
+
+        @keyframes float {
+          0%, 100% { 
+            transform: translateY(0px);
+            opacity: 0.4;
+          }
+          50% { 
+            transform: translateY(-20px);
+            opacity: 0.8;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -66,5 +66,73 @@
     @apply bg-background text-foreground;
   }
 }
+/* Matrix Rain Animation */
+.matrix-rain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+.matrix-rain::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 200%;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(20, 184, 166, 0.3) 2px,
+    rgba(20, 184, 166, 0.3) 4px
+  );
+  animation: matrix-rain 8s linear infinite;
+}
+
+@keyframes matrix-rain {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Moving Particle Flow Animation */
+.animate-particle-flow {
+  position: absolute;
+  animation: particle-flow linear infinite;
+}
+
+@keyframes particle-flow {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(100vh) translateX(20px);
+    opacity: 0;
+  }
+}
+
+/* Pulse Animation for Holographic Border */
+.animate-pulse {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
 
 
