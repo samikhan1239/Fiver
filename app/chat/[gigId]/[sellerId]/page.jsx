@@ -73,7 +73,7 @@ export default function Chat() {
 
     const connectWebSocket = () => {
       const websocket = new WebSocket(
-        `wss://server-1-v0qz.onrender.com/?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`
+        `wss://server-ha0p.onrender.com/?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`
       );
 
       websocket.onopen = () => {
