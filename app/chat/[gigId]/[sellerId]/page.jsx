@@ -1,6 +1,6 @@
 // Chat.tsx
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import jwt from "jsonwebtoken";
@@ -16,6 +16,7 @@ export default function Chat() {
   const [ws, setWs] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const wsRef = useRef(null);
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -72,13 +73,19 @@ export default function Chat() {
     fetchMessages();
 
     const connectWebSocket = () => {
-      const websocket = new WebSocket(
-        `wss://server-ha0p.onrender.com/?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`
-      );
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        console.log("WebSocket already connected");
+        setWs(wsRef.current);
+        return;
+      }
+
+     const websocket = new WebSocket(`wss://server-ha0p.onrender.com//?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`);
+
+      wsRef.current = websocket;
+      setWs(websocket);
 
       websocket.onopen = () => {
         console.log("WebSocket connected for user:", user.id);
-        setWs(websocket);
       };
 
       websocket.onmessage = (event) => {
@@ -90,9 +97,26 @@ export default function Chat() {
             return;
           }
           setMessages((prev) => {
-            if (message._id && prev.some((m) => m._id === message._id)) {
-              console.log("Duplicate message ignored:", message._id);
-              return prev;
+            // Use messageId for deduplication if available, fallback to senderId+timestamp
+            const messageKey = message.messageId || `${message.senderId}:${message.timestamp}`;
+            if (
+              prev.some(
+                (m) =>
+                  m.messageId === messageKey ||
+                  m._id === message._id ||
+                  (m.senderId === message.senderId && m.timestamp === message.timestamp)
+              )
+            ) {
+              console.log("Duplicate message ignored:", messageKey);
+              // Replace optimistic message
+              return prev.map((m) =>
+                (m._id.startsWith("temp-") &&
+                  m.senderId === message.senderId &&
+                  m.timestamp === message.timestamp) ||
+                m.messageId === message.messageId
+                  ? { ...message, userId: message.userId || { _id: message.senderId } }
+                  : m
+              );
             }
             return [...prev, { ...message, userId: message.userId || { _id: message.senderId } }];
           });
@@ -113,18 +137,21 @@ export default function Chat() {
 
       websocket.onclose = () => {
         console.log("WebSocket closed, attempting to reconnect...");
+        wsRef.current = null;
         setWs(null);
         setTimeout(connectWebSocket, 3000);
       };
-
-      return websocket;
     };
 
-    const websocket = connectWebSocket();
+    connectWebSocket();
 
     return () => {
       console.log("Cleaning up WebSocket");
-      websocket.close();
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+        setWs(null);
+      }
     };
   }, [user, gigId, sellerId]);
 
@@ -135,15 +162,18 @@ export default function Chat() {
       return;
     }
 
-    const tempId = `temp-${Date.now()}`;
+    const timestamp = Date.now();
+    const messageId = `${user.id}:${timestamp}`; // Generate messageId
+    const tempId = `temp-${timestamp}`;
     const optimisticMessage = {
       _id: tempId,
       gigId,
       userId: { _id: user.id, name: user.name, avatar: user.avatar },
       senderId: user.id,
       text,
-      timestamp: Date.now(),
+      timestamp,
       read: false,
+      messageId, // Include messageId
     };
     setMessages((prev) => [...prev, optimisticMessage]);
     console.log("Optimistically added message:", optimisticMessage);
@@ -154,53 +184,11 @@ export default function Chat() {
         senderId: user.id.toString(),
         recipientId: user.id === sellerId ? null : sellerId.toString(),
         text,
-        timestamp: Date.now(),
+        timestamp,
+        messageId, // Include messageId in WebSocket message
       };
-      console.log("Preparing to send WebSocket message:", wsMessage);
+      console.log("Sending WebSocket message:", wsMessage);
       ws.send(JSON.stringify(wsMessage));
-      console.log("Sent WebSocket message:", wsMessage);
-
-      setTimeout(async () => {
-        try {
-          const apiPayload = {
-            gigId,
-            senderId: user.id,
-            recipientId: user.id === sellerId ? null : sellerId,
-            text,
-            timestamp: Date.now(),
-          };
-          console.log("Preparing to send API payload:", apiPayload);
-          const res = await fetch("/api/messages", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify(apiPayload),
-          });
-          const responseData = await res.json();
-          if (!res.ok) {
-            throw new Error(`Failed to save message: ${res.status} ${responseData.message || responseData.error}`);
-          }
-          console.log("Message saved to API:", responseData);
-
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg._id === tempId
-                ? { ...responseData, userId: responseData.userId || { _id: responseData.senderId } }
-                : msg
-            )
-          );
-        } catch (err) {
-          console.error("API save error:", {
-            message: err.message,
-            name: err.name,
-            stack: err.stack,
-          });
-          setError(err.message);
-          setMessages((prev) => prev.filter((msg) => msg._id !== tempId));
-        }
-      }, 100);
     } catch (err) {
       console.error("WebSocket send error:", {
         message: err.message,
@@ -262,7 +250,7 @@ export default function Chat() {
       <nav className="p-4 sm:p-6 bg-gray-800/95 border-b border-gray-700/50 flex items-center">
         <Link href="/messages" className="text-teal-300 hover:text-teal-400 transition-colors mr-4">
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
           </svg>
         </Link>
         <h2 className="text-xl font-semibold text-white bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">

@@ -33,14 +33,22 @@ export default function ChatBox({ messages, sendMessage, userId }) {
               <p className="text-gray-400 text-sm mt-2">Start the conversation by sending a message!</p>
             </div>
           ) : (
-            messages.map((message, index) => {
+            messages.map((message) => {
               const senderId = String(message.userId?._id || message.userId || message.senderId);
               const isSent = senderId === String(userId);
-              console.log("Rendering message:", { senderId, userId, isSent, message });
+              console.log("Rendering message:", {
+                messageId: message.messageId,
+                _id: message._id,
+                senderId,
+                userId,
+                isSent,
+                text: message.text,
+                timestamp: message.timestamp,
+              });
 
               return (
                 <div
-                  key={message._id || index}
+                  key={message.messageId || message._id} // Use messageId or _id
                   className={`flex ${isSent ? "justify-end pr-3" : "justify-start pl-3"} transition-all duration-300 animate-slide-in`}
                 >
                   <div

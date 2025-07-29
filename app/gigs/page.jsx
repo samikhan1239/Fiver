@@ -287,7 +287,7 @@ export default function Gigs() {
                           className="rounded-full mr-2"
                         />
                         <span className="text-sm font-medium text-gray-300 group-hover:text-teal-300 transition-colors duration-300">
-                          {gig.seller || "Unknown"}
+                          {gig.userId || "Unknown"}
                         </span>
                       </div>
 

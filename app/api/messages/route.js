@@ -1,3 +1,4 @@
+// api/messages/index.js
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { connectDB } from "../../../lib/mongodb";
@@ -21,13 +22,22 @@ export async function GET(request) {
       return NextResponse.json({ message: "Missing gigId, sellerId, or userId" }, { status: 400 });
     }
 
+    // Validate ObjectIds
+    if (
+      !mongoose.Types.ObjectId.isValid(gigId) ||
+      !mongoose.Types.ObjectId.isValid(sellerId) ||
+      !mongoose.Types.ObjectId.isValid(userId)
+    ) {
+      return NextResponse.json({ message: "Invalid gigId, sellerId, or userId" }, { status: 400 });
+    }
+
     const messages = await Message.find({
-      gigId,
+      gigId: mongoose.Types.ObjectId.createFromHexString(gigId),
       $or: [
-        { userId: userId, recipientId: sellerId },
-        { userId: sellerId, recipientId: userId },
-        { userId: userId, recipientId: null },
-        { userId: sellerId, recipientId: null },
+        { userId: mongoose.Types.ObjectId.createFromHexString(userId), recipientId: mongoose.Types.ObjectId.createFromHexString(sellerId) },
+        { userId: mongoose.Types.ObjectId.createFromHexString(sellerId), recipientId: mongoose.Types.ObjectId.createFromHexString(userId) },
+        { userId: mongoose.Types.ObjectId.createFromHexString(userId), recipientId: null },
+        { userId: mongoose.Types.ObjectId.createFromHexString(sellerId), recipientId: null },
       ],
     })
       .populate("userId", "name avatar")
@@ -63,7 +73,7 @@ export async function POST(request) {
     await connectDB();
 
     const payload = await request.json();
-    console.log("POST /api/messages payload:", payload); // Log payload
+    console.log("POST /api/messages payload:", payload);
     const { gigId, senderId, recipientId, text, timestamp } = payload;
 
     if (!gigId || !senderId || !text) {
@@ -71,24 +81,46 @@ export async function POST(request) {
       return NextResponse.json({ message: "Missing required fields: gigId, senderId, or text" }, { status: 400 });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(gigId) || !mongoose.Types.ObjectId.isValid(senderId) || (recipientId && !mongoose.Types.ObjectId.isValid(recipientId))) {
+      return NextResponse.json({ message: "Invalid gigId, senderId, or recipientId" }, { status: 400 });
+    }
+
     if (senderId !== decoded.id) {
       return NextResponse.json({ message: "Unauthorized: Sender ID does not match token" }, { status: 401 });
     }
 
-    const message = await Message.create({
-      gigId,
-      userId: senderId,
-      recipientId: recipientId || null,
-      text,
-      timestamp: timestamp ? new Date(timestamp) : new Date(),
-    });
+    // Create unique messageId
+    const messageId = `${senderId}:${timestamp || Date.now()}`;
+    const existingMessage = await Message.findOne({ messageId });
+    if (existingMessage) {
+      console.log("Duplicate message ignored:", messageId);
+      return NextResponse.json({ message: "Message already exists" }, { status: 409 });
+    }
 
-    const populatedMessage = await Message.findById(message._id)
-      .populate("userId", "name avatar")
-      .lean();
+    try {
+      const message = await Message.create({
+        gigId: mongoose.Types.ObjectId.createFromHexString(gigId),
+        userId: mongoose.Types.ObjectId.createFromHexString(senderId),
+        recipientId: recipientId ? mongoose.Types.ObjectId.createFromHexString(recipientId) : null,
+        text,
+        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        read: false,
+        messageId,
+      });
 
-    console.log("POST /api/messages response:", populatedMessage);
-    return NextResponse.json(populatedMessage, { status: 201 });
+      const populatedMessage = await Message.findById(message._id)
+        .populate("userId", "name avatar")
+        .lean();
+
+      console.log("POST /api/messages response:", populatedMessage);
+      return NextResponse.json(populatedMessage, { status: 201 });
+    } catch (error) {
+      if (error.code === 11000) {
+        console.log("Duplicate messageId ignored:", messageId);
+        return NextResponse.json({ message: "Message already exists" }, { status: 409 });
+      }
+      throw error;
+    }
   } catch (error) {
     console.error("POST /api/messages error:", {
       message: error.message,
