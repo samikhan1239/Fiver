@@ -79,7 +79,7 @@ export default function Chat() {
         return;
       }
 
-     const websocket = new WebSocket(`wss://server-ha0p.onrender.com//?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`);
+     const websocket = new WebSocket(`wss://server-2-n474.onrender.com/?gigId=${gigId}&sellerId=${sellerId}&userId=${user.id}`);
 
       wsRef.current = websocket;
       setWs(websocket);
