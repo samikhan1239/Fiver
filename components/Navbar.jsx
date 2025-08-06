@@ -54,7 +54,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-3xl font-black text-teal-500 drop-shadow-lg">
-              TalentSync - Sami
+              TalentSync
             </span>
           </Link>
 
